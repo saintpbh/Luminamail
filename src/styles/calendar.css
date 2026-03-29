@@ -1,0 +1,440 @@
+/* ═══════════════════════════════════════════════════════════
+   Lumina Mail - Calendar & Todo Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Sidebar View Tabs ── */
+.sidebar-view-tabs {
+  display: flex;
+  margin: 12px 16px;
+  gap: 8px;
+}
+
+.sidebar-view-tab {
+  flex: 1;
+  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  gap: 4px;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.sidebar-view-tab .tab-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.sidebar-view-tab .tab-label {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+}
+.sidebar-view-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.sidebar-view-tab.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Todo Panel ── */
+.todo-panel { padding: 12px; height: 100%; display: flex; flex-direction: column; }
+
+.todo-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.todo-header h3 {
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.todo-add-btn {
+  background: var(--accent);
+  color: #fff; border: none;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.todo-add-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+.todo-input-box {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.todo-input-box.visible { display: block; animation: fadeInUp 0.2s ease; }
+
+.todo-input {
+  width: 100%;
+  background: none; border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.todo-input-row {
+  display: flex; gap: 8px; margin-top: 8px; align-items: center;
+}
+
+.todo-date-input, .todo-priority-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.todo-submit-btn {
+  background: var(--accent);
+  color: #fff; border: none;
+  padding: 4px 12px;
+  border-radius: 6px; font-size: 11px;
+  cursor: pointer; margin-left: auto;
+}
+
+.todo-list {
+  flex: 1; overflow-y: auto;
+}
+
+.todo-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  margin-bottom: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.todo-item:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-highlight);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.todo-check {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.todo-item.completed .todo-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.todo-item.completed .todo-check::after {
+  content: '✓';
+  position: absolute;
+  inset: -2px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 700;
+}
+
+.todo-content { flex: 1; min-width: 0; }
+.todo-title {
+  font-size: 13px; font-weight: 500;
+  line-height: 1.4;
+}
+.todo-item.completed .todo-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.todo-meta {
+  display: flex; gap: 8px; align-items: center;
+  margin-top: 4px;
+}
+
+.todo-due {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,149,0,0.15);
+  color: #ff9500;
+}
+.todo-due.overdue { background: rgba(255,69,58,0.15); color: #ff453a; }
+
+.todo-priority-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.todo-priority-badge.high { background: rgba(255,69,58,0.15); color: #ff453a; }
+.todo-priority-badge.normal { background: rgba(0,122,255,0.15); color: #007aff; }
+.todo-priority-badge.low { background: rgba(142,142,147,0.15); color: #8e8e93; }
+
+.todo-source {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 3px;
+}
+
+.todo-delete {
+  background: none; border: none;
+  color: var(--text-muted);
+  cursor: pointer; font-size: 14px;
+  opacity: 0; transition: all 0.15s;
+  padding: 2px 4px;
+}
+.todo-item:hover .todo-delete { opacity: 1; }
+.todo-delete:hover { color: #ff453a; }
+
+/* ── Calendar Panel ── */
+.calendar-panel { padding: 12px; height: 100%; display: flex; flex-direction: column; }
+
+.calendar-header {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cal-nav-btn {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: 16px; cursor: pointer;
+  padding: 4px 8px; border-radius: 6px;
+}
+.cal-nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.cal-month-year {
+  font-size: 15px; font-weight: 700;
+  min-width: 120px; text-align: center;
+}
+
+.cal-today-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+.cal-day-header:first-child { color: #ff453a; }
+.cal-day-header:last-child { color: #007aff; }
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  gap: 2px;
+  border: 1px solid transparent;
+  background: transparent;
+}
+.cal-day:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-highlight);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+.cal-day.other-month { color: var(--text-muted); opacity: 0.4; pointer-events: none; }
+.cal-day.today {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
+}
+.cal-day.selected {
+  background: rgba(0,122,255,0.2);
+  border-color: var(--accent);
+  font-weight: 600;
+  box-shadow: inset 0 0 10px rgba(0, 122, 255, 0.15);
+}
+.cal-day.has-mail::after {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.cal-day.has-event::before {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #ff9500;
+  position: absolute;
+  bottom: 3px;
+  left: calc(50% - 5px);
+}
+.cal-day.has-mail::after {
+  position: absolute;
+  bottom: 3px;
+  left: calc(50% + 1px);
+}
+
+/* ── Date Mail List ── */
+.date-mail-section { flex: 1; overflow-y: auto; }
+
+.date-mail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px; font-weight: 600;
+}
+
+.date-mail-header .mail-count {
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+
+
+.date-mail-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  border: 1px solid transparent;
+  border-bottom: 1px solid var(--glass-border);
+  background: transparent;
+  margin-bottom: 2px;
+}
+.date-mail-item:last-child { border-bottom-color: transparent; }
+.date-mail-item:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-highlight);
+  transform: translateX(2px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.date-mail-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 40px;
+  font-weight: 500;
+}
+
+.date-mail-sender {
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 60px;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-mail-body {
+  flex: 1; min-width: 0;
+}
+.date-mail-subject {
+  font-size: 12px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.date-mail-preview {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.date-mail-empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.date-mail-empty .empty-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+/* ── Msg Action Buttons (Add to Todo/Calendar) ── */
+.msg-actions-bar {
+  display: flex; gap: 4px;
+  margin-top: 6px;
+}
+
+.msg-action-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 3px;
+  transition: all 0.15s;
+}
+.msg-action-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* ── Add to Calendar Modal ── */
+.mini-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-highlight);
+  border-radius: 12px;
+  padding: 20px;
+  width: 360px;
+  z-index: 1100;
+  box-shadow: var(--glass-shadow), 0 0 30px rgba(0, 122, 255, 0.1);
+}
+
+.mini-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1099;
+}
+
+.mini-modal h3 {
+  font-size: 15px; font-weight: 700;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}

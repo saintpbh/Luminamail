@@ -1,0 +1,378 @@
+/* ═══════════════════════════════════════════════════════════
+   Lumina Mail - Settings & Account Management Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Settings Modal Overlay ── */
+.settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.settings-panel {
+  width: 720px; max-height: 85vh;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-highlight);
+  border-radius: 16px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), 0 0 60px rgba(0, 122, 255, 0.1);
+}
+
+.settings-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-header h2 {
+  font-size: 18px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.settings-close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 20px; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: all 0.15s;
+}
+.settings-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ── Tab Navigation ── */
+.settings-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+
+.settings-tab {
+  padding: 12px 20px;
+  background: none; border: none; color: var(--text-muted);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.settings-tab:hover { color: var(--text-secondary); }
+.settings-tab.active {
+  color: var(--accent); border-bottom-color: var(--accent);
+}
+
+.settings-body {
+  flex: 1; overflow-y: auto; padding: 24px;
+}
+
+.settings-section { margin-bottom: 28px; }
+
+.settings-section h3 {
+  font-size: 14px; font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Provider Cards ── */
+.provider-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.provider-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex; align-items: center; gap: 12px;
+}
+.provider-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--glass-border-highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.provider-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.provider-icon.gmail { background: linear-gradient(135deg, #EA4335, #FBBC04); }
+.provider-icon.naver { background: linear-gradient(135deg, #03C75A, #00B843); }
+.provider-icon.daum { background: linear-gradient(135deg, #FF6600, #FF9933); }
+.provider-icon.outlook { background: linear-gradient(135deg, #0078D4, #00BCF2); }
+
+.provider-info h4 { font-size: 14px; font-weight: 600; }
+.provider-info p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Connected Account Card ── */
+.account-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.account-card .account-meta { flex: 1; }
+.account-card .account-email { font-size: 14px; font-weight: 600; }
+.account-card .account-provider { font-size: 11px; color: var(--text-muted); }
+
+.sync-toggle {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.sync-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.account-delete {
+  background: none; border: none;
+  color: var(--text-muted);
+  cursor: pointer; font-size: 16px;
+  padding: 4px 8px; border-radius: 6px;
+}
+.account-delete:hover { color: #ff453a; background: rgba(255,69,58,0.1); }
+
+/* ── Account Form ── */
+.account-form {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.form-row {
+  display: flex; gap: 12px; margin-bottom: 12px;
+}
+
+.form-group {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+}
+
+.form-group label {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input, .form-group select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff; border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-primary:hover { filter: brightness(1.1); }
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* ── Telegram Linking ── */
+.telegram-section {
+  text-align: center;
+  padding: 20px;
+}
+
+.telegram-bot-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #0088cc, #00aff0);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 20px;
+  transition: transform 0.2s;
+}
+.telegram-bot-link:hover { transform: scale(1.02); }
+
+.link-code-display {
+  background: var(--bg-primary);
+  border: 2px dashed var(--accent);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.link-code-number {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 12px;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.link-code-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.link-status {
+  display: flex; align-items: center; gap: 8px;
+  justify-content: center;
+  font-size: 13px; color: var(--text-muted);
+  margin-top: 16px;
+}
+
+.link-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.telegram-connected {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.telegram-connected .tg-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0088cc, #00aff0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+
+.telegram-connected .tg-info { flex: 1; text-align: left; }
+.telegram-connected .tg-info h4 { font-size: 15px; }
+.telegram-connected .tg-info p { font-size: 12px; color: var(--text-muted); }
+
+.tg-actions { display: flex; gap: 8px; }
+
+/* ── Sync Mode Explanation ── */
+.sync-mode-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.sync-option {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.sync-option + .sync-option { border-top: 1px solid var(--border); }
+
+.sync-radio {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  margin-top: 2px;
+  position: relative;
+  flex-shrink: 0;
+}
+.sync-option.active .sync-radio {
+  border-color: var(--accent);
+}
+.sync-option.active .sync-radio::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.sync-option-text h4 { font-size: 13px; font-weight: 600; }
+.sync-option-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Sync Buttons ── */
+.btn-small {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-small:hover { background: var(--bg-hover); border-color: var(--accent); }
+.btn-small.btn-sync { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #0a84ff; }
+.btn-small.btn-sync:hover { background: rgba(0,122,255,0.25); }
+
+.account-sync-status {
+  font-size: 11px;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+.account-actions-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+/* ── Cloud Cards ── */
+.cloud-card {
+  position: relative;
+}
+.cloud-card.connected {
+  border-color: #30d158;
+  background: rgba(48,209,88,0.05);
+}
+.cloud-card-action {
+  margin-left: auto;
+}
+.gdrive-icon {
+  background: linear-gradient(135deg, #0F9D58, #4285F4) !important;
+  color: white;
+}
+.onedrive-icon {
+  background: linear-gradient(135deg, #0078D4, #00BCF2) !important;
+  color: white;
+}
+
+

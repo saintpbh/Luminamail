@@ -1,0 +1,697 @@
+/* ═══════════════════════════════════════════════════════════
+   Lumina Mail - Feature-Specific Styles
+   Morning Briefing, Undo Send, Ghost Writing, Wiki,
+   Telegram, Media Cards, Upload, Anti-Tracking, etc.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Morning Briefing ─── */
+.morning-briefing {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--space-md) var(--space-xl);
+  animation: fadeInUp 0.4s ease;
+  position: relative;
+  z-index: 5;
+}
+
+.briefing-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.briefing-icon { font-size: 20px; }
+
+.briefing-title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.briefing-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+.briefing-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.briefing-cards {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-md);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.briefing-cards::-webkit-scrollbar { display: none; }
+
+.briefing-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  min-width: 240px;
+  max-width: 320px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.briefing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.briefing-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+.briefing-card:hover::before { opacity: 1; }
+
+.briefing-card-emoji {
+  font-size: 24px;
+  margin-bottom: var(--space-xs);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.briefing-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: var(--space-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.briefing-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.briefing-card-sender {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* ─── Undo Send Toast ─── */
+.undo-send-toast {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  animation: fadeInUp 0.3s ease;
+}
+
+.undo-send-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+}
+
+.undo-send-icon {
+  font-size: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.undo-send-text {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.undo-progress {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width 1s linear;
+}
+
+.undo-send-btn {
+  padding: var(--space-xs) var(--space-lg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--danger);
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.undo-send-btn:hover {
+  background: var(--danger);
+  color: white;
+}
+
+/* ─── Ghost Writing ─── */
+.input-ghost-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.ghost-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-md) var(--space-lg);
+  font-family: var(--font-family);
+  font-size: var(--font-base);
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  opacity: 0.4;
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.ghost-text.visible {
+  animation: ghostFade 2s ease-in-out infinite alternate;
+}
+
+@keyframes ghostFade {
+  from { opacity: 0.25; }
+  to { opacity: 0.45; }
+}
+
+.ghost-hint {
+  position: absolute;
+  bottom: -18px;
+  right: var(--space-md);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+/* ─── Attachment Button ─── */
+.attach-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.attach-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+/* ─── Upload Progress ─── */
+.upload-progress {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  animation: fadeInUp 0.2s ease;
+}
+
+.upload-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.upload-info #upload-filename {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.upload-info #upload-size {
+  color: var(--text-tertiary);
+}
+
+.upload-bar-track {
+  height: 3px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.upload-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #5856D6);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.upload-cloud-badge {
+  font-size: var(--font-xs);
+  color: var(--info);
+  font-weight: 500;
+}
+
+/* ─── Media Card (in chat) ─── */
+.media-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-width: 360px;
+  margin-top: var(--space-sm);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+.media-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.media-card-preview {
+  width: 100%;
+  height: 160px;
+  background: var(--bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.media-card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-card-play {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: white;
+  transition: transform var(--transition-fast);
+}
+.media-card:hover .media-card-play {
+  transform: scale(1.1);
+}
+
+.media-card-info {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.media-card-title {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-card-domain {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* ─── Whisper Notes (Intel Panel) ─── */
+.whisper-notes {
+  background: rgba(255, 149, 0, 0.05); /* very subtle orange tint */
+  border: 1px solid rgba(255, 149, 0, 0.15);
+  border-radius: 12px;
+  padding: var(--space-sm) var(--space-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+.whisper-notes:focus-within {
+  background: rgba(255, 149, 0, 0.08);
+  border-color: rgba(255, 149, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 149, 0, 0.1);
+}
+
+.whisper-notepad {
+  width: 100%;
+  min-height: 80px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+.whisper-notepad::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ─── Attachment Search ─── */
+.attachment-search-btn {
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.attachment-search-btn:hover {
+  background: var(--bg-hover);
+}
+
+/* ─── Anti-Tracking Badge ─── */
+.anti-tracking-badge {
+  font-size: var(--font-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--success);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* ─── Telegram Status ─── */
+.telegram-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.telegram-status:hover {
+  background: var(--bg-hover);
+}
+
+.telegram-icon {
+  font-size: 16px;
+}
+
+.telegram-text {
+  flex: 1;
+}
+
+.telegram-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+}
+.telegram-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(48, 209, 88, 0.5);
+}
+
+/* ─── Telegram Modal ─── */
+.telegram-modal-container {
+  max-width: 500px;
+}
+
+.telegram-actions {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.telegram-action-btn {
+  flex: 1;
+  padding: var(--space-md);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.telegram-action-btn:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.telegram-log {
+  padding: var(--space-md) var(--space-lg);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.telegram-log-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ─── Thread Jump (Context Card) ─── */
+.thread-jump {
+  background: linear-gradient(135deg, rgba(255, 214, 10, 0.06), rgba(255, 149, 0, 0.04));
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-md) var(--space-xl);
+  animation: fadeInUp 0.3s ease;
+}
+
+.thread-jump-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.thread-jump-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.thread-jump-content {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.thread-jump-summary {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-xs);
+}
+
+/* ─── Wiki Modal ─── */
+.wiki-modal-container {
+  max-width: 800px;
+  max-height: 85vh;
+}
+
+.wiki-content {
+  padding: var(--space-xl);
+  overflow-y: auto;
+  flex: 1;
+  font-size: var(--font-sm);
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.wiki-section {
+  margin-bottom: var(--space-2xl);
+}
+
+.wiki-section h2 {
+  font-size: var(--font-lg);
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.wiki-entry {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.wiki-entry-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.wiki-entry-date {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.wiki-entry-content {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+/* ─── Cost Optimization Badge ─── */
+.cost-optimization-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(48, 209, 88, 0.06);
+  border: 1px solid rgba(48, 209, 88, 0.15);
+  border-radius: var(--radius-md);
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.cost-saving {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ─── Attachments List ─── */
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.attachment-item:hover {
+  border-color: var(--accent);
+}
+
+.attachment-icon {
+  font-size: 18px;
+}
+
+.attachment-name {
+  flex: 1;
+  font-size: var(--font-xs);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachment-size {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+/* ─── Dynamic Emoji on Avatar ─── */
+.thread-avatar .dynamic-emoji {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  font-size: 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-secondary);
+  animation: popIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+/* ─── Custom Category Icons ─── */
+.thread-category-icon {
+  font-size: 14px;
+  margin-right: 2px;
+}

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Lumina Mail - AI 기반 채팅형 이메일 클라이언트" />
+  <title>Lumina Mail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/features.css" />
+  <link rel="stylesheet" href="styles/settings.css" />
+  <link rel="stylesheet" href="styles/calendar.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/groups.css" />
+</head>
+<body>
+  <!-- Splash Screen (shows immediately, no JS required) -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">✉️</div>
+      <div class="splash-title">Lumina Mail</div>
+      <div class="splash-subtitle">메일을 준비하고 있어요</div>
+      <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+      </div>
+    </div>
+  </div>
+  <style>
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0D0D0D 0%, #1a1a2e 50%, #16213e 100%);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #splash-screen.fade-out {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .splash-content {
+      text-align: center;
+      animation: splash-fade-in 0.4s ease-out;
+    }
+    @keyframes splash-fade-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .splash-logo {
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: splash-pulse 2s ease-in-out infinite;
+    }
+    @keyframes splash-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .splash-title {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #F5F5F7;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .splash-subtitle {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 14px;
+      color: #A1A1A6;
+      margin-bottom: 32px;
+    }
+    .splash-loader {
+      width: 200px;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .splash-loader-bar {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #007AFF, #5AC8FA);
+      border-radius: 2px;
+      animation: splash-loading 1.2s ease-in-out infinite;
+    }
+    @keyframes splash-loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+  </style>
+  <!-- Firebase Auth Container -->
+  <div id="auth-container" class="auth-container">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <span class="logo-icon">✉️</span>
+        <h1 class="logo-text">Lumina Mail</h1>
+      </div>
+      <h2 class="auth-title">로그인</h2>
+      <p class="auth-subtitle">계정 세션 동기화를 위해 계속하세요</p>
+      
+      <div class="auth-form">
+        <div class="form-group">
+          <label>이메일</label>
+          <input type="email" id="auth-email" placeholder="name@example.com" class="input-field">
+        </div>
+        <div class="form-group">
+          <label>비밀번호</label>
+          <input type="password" id="auth-password" placeholder="••••••••" class="input-field">
+        </div>
+        
+        <div class="auth-actions">
+          <button id="auth-login-btn" class="btn-primary auth-btn">로그인</button>
+          <button id="auth-register-btn" class="btn-secondary auth-btn">회원가입</button>
+        </div>
+        
+        <div class="auth-divider"><span>또는</span></div>
+        
+        <button id="auth-google-btn" class="btn-google auth-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Gmail 계정 연동 (IMAP)
+        </button>
+      </div>
+      <div id="auth-error" class="auth-error" style="display:none;"></div>
+      
+      <!-- IMAP Configuration Modal (Hidden by default) -->
+      <div id="auth-imap-modal" class="auth-imap-modal" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
+        <h3 style="margin-bottom:10px; font-size:16px;">Gmail IMAP 연결</h3>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">실제 메일을 가져오기 위해 <b>Google 앱 비밀번호(16자리)</b>가 필요합니다.</p>
+        
+        <details style="margin-bottom:15px; font-size:11px; color:var(--text-secondary); background: var(--bg-surface-hover); padding: 8px; border-radius: 6px; text-align: left;">
+          <summary style="cursor:pointer; font-weight:bold; color:var(--primary-color);">🤔 앱 비밀번호 발급 방법 보기</summary>
+          <ol style="margin-top:8px; padding-left:16px; line-height:1.5;">
+            <li><a href="https://myaccount.google.com/security" target="_blank" style="color:var(--primary-color); text-decoration:underline;">구글 보안 설정(클릭)</a>에 접속</li>
+            <li>화면 맨 위 <b>'Google 계정 검색'</b>(돋보기) 클릭</li>
+            <li><b>'앱 비밀번호'</b>라고 검색 후 나오는 메뉴 클릭 <br><span style="font-size:10px; color:#888;">(※ 2단계 인증이 켜져 있어야 검색됩니다)</span></li>
+            <li>앱 이름에 'Lumina' 입력 후 <b>만들기</b> 클릭</li>
+            <li>발급된 <b>16자리 영문자</b>를 복사하여 아래에 붙여넣기</li>
+          </ol>
+        </details>
+
+        <div class="form-group">
+          <input type="email" id="imap-email" placeholder="example@gmail.com" class="input-field">
+        </div>
+        <div class="form-group">
+          <input type="password" id="imap-password" placeholder="앱 비밀번호 16자리" class="input-field">
+        </div>
+        <div class="auth-actions" style="margin-top:15px;">
+          <button id="imap-connect-btn" class="btn-primary auth-btn">연동 및 시작</button>
+          <button id="imap-cancel-btn" class="btn-secondary auth-btn">취소</button>
+        </div>
+        <div id="imap-error" class="auth-error" style="display:none; margin-top:10px;"></div>
+        <div id="imap-loading" style="display:none; margin-top:10px; font-size:12px; color:var(--primary-color);">
+          <div class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid var(--primary-color); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+          메일 동기화 중... (약 10~30초 소요)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app-container" style="display:none;">
+    <!-- Left Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="logo-icon">✉️</span>
+          <h1 class="logo-text">Lumina Mail</h1>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button id="settings-btn" class="compose-btn" title="설정" onclick="openSettings()" style="font-size:16px">⚙️</button>
+          <button id="compose-btn" class="compose-btn" title="새 메일 작성">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- View Tabs: Mail / Todo / Calendar -->
+      <div class="sidebar-view-tabs">
+        <button class="sidebar-view-tab active" data-view="mail" onclick="switchSidebarView('mail')">
+          <span class="tab-icon">✉️</span><span class="tab-label">메일</span>
+        </button>
+        <button class="sidebar-view-tab" data-view="todo" onclick="switchSidebarView('todo')">
+          <span class="tab-icon">✅</span><span class="tab-label">Todo</span>
+        </button>
+        <button class="sidebar-view-tab" data-view="calendar" onclick="switchSidebarView('calendar')">
+          <span class="tab-icon">📅</span><span class="tab-label">캘린더</span>
+        </button>
+        <button class="sidebar-view-tab" data-view="groups" onclick="switchSidebarView('groups')">
+          <span class="tab-icon">👤</span><span class="tab-label">주소록</span>
+        </button>
+      </div>
+
+      <!-- Mail Thread List (default view) -->
+      <div id="thread-list-section">
+        <div class="sidebar-search">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="text" id="search-input" class="search-input" placeholder="메일 검색..." />
+            <button id="attachment-search-btn" class="attachment-search-btn" title="첨부파일 검색">📎</button>
+          </div>
+        </div>
+        <div class="sidebar-filters">
+          <button class="filter-btn active" data-filter="all">전체</button>
+          <button class="filter-btn" data-filter="unread">안 읽음</button>
+          <button class="filter-btn" data-filter="pinned">고정</button>
+          <button class="filter-btn" data-filter="important">⭐ 중요</button>
+          <button class="filter-btn" data-filter="needs_action">📋 조치필요</button>
+          <button class="filter-btn" data-filter="media">🎬 미디어</button>
+          <button class="filter-btn" data-filter="trash">🗑️ 휴지통</button>
+          <button class="filter-btn" data-filter="spam">🚫 스팸</button>
+        </div>
+        <div id="pull-to-refresh" class="pull-to-refresh">
+          <div class="ptr-spinner"></div>
+          <span class="ptr-text">새 메일 확인 중...</span>
+        </div>
+        <div id="thread-list" class="thread-list"></div>
+      </div>
+
+      <!-- Todo Panel (hidden by default) -->
+      <div id="todo-section" class="todo-panel" style="display:none">
+        <div class="todo-header">
+          <h3>✅ 할 일</h3>
+          <button class="todo-add-btn" onclick="toggleTodoInput()">+</button>
+        </div>
+        <div id="todo-input-box" class="todo-input-box">
+          <input type="text" id="todo-title-input" class="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')submitTodo()">
+          <div class="todo-input-row">
+            <input type="date" id="todo-due-input" class="todo-date-input">
+            <select id="todo-priority-input" class="todo-priority-select">
+              <option value="normal">보통</option>
+              <option value="high">긴급</option>
+              <option value="low">낮음</option>
+            </select>
+            <button class="todo-submit-btn" onclick="submitTodo()">추가</button>
+          </div>
+        </div>
+        <div id="todo-list" class="todo-list"></div>
+      </div>
+
+      <!-- Calendar Panel (hidden by default) -->
+      <div id="calendar-section" class="calendar-panel" style="display:none">
+        <div class="calendar-header">
+          <button class="cal-nav-btn" onclick="calPrev()">◀</button>
+          <span id="cal-month-year" class="cal-month-year"></span>
+          <button class="cal-nav-btn" onclick="calNext()">▶</button>
+          <button class="cal-today-btn" onclick="calToday()">오늘</button>
+        </div>
+        <div id="cal-grid" class="cal-grid"></div>
+        <div class="date-mail-section">
+          <div id="date-mail-header" class="date-mail-header">📅 날짜를 선택하세요</div>
+          <div id="date-mail-list" class="date-mail-list">
+            <div class="date-mail-empty">
+              <div class="empty-icon">📆</div>
+              캘린더에서 날짜를 클릭하면<br>해당 날짜의 메일을 볼 수 있습니다
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contacts Panel (hidden by default) -->
+      <div id="groups-section" class="groups-panel" style="display:none">
+        <div class="groups-sidebar-header">
+          <h3>👤 주소록</h3>
+          <button class="todo-add-btn" onclick="openGroupManager()">+</button>
+        </div>
+        <div style="padding: 0 16px 16px; display: flex; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 11px; padding: 6px; flex: 1" onclick="syncContacts('google')">Google 동기화</button>
+          <button class="btn-secondary" style="font-size: 11px; padding: 6px; flex: 1" onclick="syncContacts('apple')">Apple 동기화</button>
+        </div>
+        <div id="groups-sidebar-list" class="groups-sidebar-list"></div>
+      </div>
+
+      <!-- Group Management Modal -->
+      <div id="group-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-container group-modal-container">
+          <div class="modal-header">
+            <h3 class="modal-title">👥 그룹 관리</h3>
+            <button class="modal-close-btn" onclick="closeGroupManager()">&times;</button>
+          </div>
+          <div id="group-modal-body" class="modal-body" style="padding:16px"></div>
+        </div>
+      </div>
+
+      <!-- Global Sync Progress -->
+      <div id="global-sync-progress" style="display:none; padding:12px 16px; border-top:1px solid var(--border-color); background:var(--bg-surface-hover);">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:6px; font-weight:500;">
+          <span style="color:var(--primary-color)">⬇️ 백그라운드 동기화 중...</span>
+          <span id="sync-progress-text" style="color:var(--text-secondary)">0 / 0</span>
+        </div>
+        <div style="width:100%; height:4px; background:var(--bg-element); border-radius:2px; overflow:hidden;">
+          <div id="sync-progress-bar" style="width:0%; height:100%; background:var(--primary-color); transition:width 0.3s; border-radius:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Telegram Status Bar -->
+      <div id="telegram-status" class="telegram-status" onclick="openSettings();setTimeout(()=>switchSettingsTab('telegram'),100)">
+        <span class="telegram-icon">✈️</span>
+        <span class="telegram-text">Telegram 연동</span>
+        <span id="telegram-dot" class="telegram-dot"></span>
+      </div>
+    </aside>
+
+    <!-- Center: Chat Timeline -->
+    <main id="chat-area" class="chat-area">
+      <!-- Morning Briefing -->
+      <div id="morning-briefing" class="morning-briefing" style="display:none;">
+        <div class="briefing-header">
+          <span class="briefing-icon">☀️</span>
+          <span class="briefing-title">오늘의 핵심 이슈</span>
+          <button id="briefing-close" class="briefing-close">&times;</button>
+        </div>
+        <div id="briefing-cards" class="briefing-cards"></div>
+      </div>
+
+      <div id="chat-header" class="chat-header">
+        <div class="chat-header-info">
+          <h2 id="chat-subject" class="chat-subject">대화를 선택하세요</h2>
+          <span id="chat-status-badge" class="status-badge"></span>
+          <span id="anti-tracking-badge" class="anti-tracking-badge" style="display:none;" title="읽음 확인 픽셀 차단됨">
+            🛡️ <small>추적차단</small>
+          </span>
+        </div>
+        <div class="chat-header-actions">
+          <button id="wiki-btn" class="header-action-btn" title="지식 베이스">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            </svg>
+          </button>
+          <button class="header-action-btn" title="검색">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+          </button>
+          <button class="header-action-btn" title="더보기">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Laser Progress Bar -->
+      <div id="laser-progress" class="laser-progress" style="display:none;"></div>
+
+      <!-- Thread Jump Card -->
+      <div id="thread-jump" class="thread-jump" style="display:none;">
+        <div class="thread-jump-header">
+          <span>🕰️ 과거 맥락</span>
+          <button id="thread-jump-close" class="thread-jump-close">&times;</button>
+        </div>
+        <div id="thread-jump-content" class="thread-jump-content"></div>
+      </div>
+
+      <div id="chat-messages" class="chat-messages">
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <h3>대화를 선택하세요</h3>
+          <p>왼쪽 목록에서 대화를 선택하면 메시지가 표시됩니다.</p>
+        </div>
+      </div>
+
+      <!-- Undo Send Toast -->
+      <div id="undo-send-toast" class="undo-send-toast" style="display:none;">
+        <div class="undo-send-content">
+          <span class="undo-send-icon">⏳</span>
+          <span class="undo-send-text">전송 중... <span id="undo-countdown">5</span>초</span>
+          <div id="undo-progress" class="undo-progress"></div>
+        </div>
+        <button id="undo-send-btn" class="undo-send-btn">전송 취소</button>
+      </div>
+
+      <div id="chat-input-area" class="chat-input-area" style="display:none;">
+        <div class="input-tabs">
+          <button class="input-tab active" data-tab="reply">✉️ 답장</button>
+          <button class="input-tab" data-tab="whisper">🔒 내부 메모</button>
+        </div>
+        <div class="input-wrapper">
+          <button id="attach-btn" class="attach-btn" title="파일 첨부">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <div class="input-ghost-wrapper">
+            <div id="reply-input" class="reply-input content-editable-wrap" contenteditable="true" data-placeholder="답장을 입력하세요..."></div>
+            <div id="ghost-text" class="ghost-text" style="display:none;"></div>
+          </div>
+          <button id="send-btn" class="send-btn" title="전송">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="m22 2-11 11"/>
+            </svg>
+          </button>
+        </div>
+        <div id="upload-progress" class="upload-progress" style="display:none;">
+          <div class="upload-info">
+            <span id="upload-filename">파일이름.pdf</span>
+            <span id="upload-size">2.5MB / 15MB</span>
+          </div>
+          <div class="upload-bar-track">
+            <div id="upload-bar-fill" class="upload-bar-fill" style="width:0%"></div>
+          </div>
+          <span id="upload-cloud-badge" class="upload-cloud-badge" style="display:none;">☁️ 클라우드</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Intelligence Panel -->
+    <aside id="intel-panel" class="intel-panel">
+      <div class="intel-header">
+        <h3>인텔리전스</h3>
+      </div>
+      <div id="intel-content" class="intel-content">
+        <div id="cost-badge" class="cost-optimization-badge">
+          <span>⚡ Regex 분류 절감:</span>
+          <span id="cost-saving" class="cost-saving">API 비용 80% ↓</span>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">🤖 AI 요약</h4>
+          <div id="ai-summary" class="ai-summary-card">
+            <p class="placeholder-text">대화를 선택하면 AI 요약이 표시됩니다.</p>
+          </div>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">🏷️ 태그</h4>
+          <div id="hashtags" class="hashtags-container"></div>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">📋 액션 카드</h4>
+          <div id="action-cards" class="action-cards">
+            <div class="action-card placeholder-card">
+              <p class="placeholder-text">대화에서 감지된 액션이 표시됩니다.</p>
+            </div>
+          </div>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">🔒 사이드 메모 (Whisper)</h4>
+          <div id="whisper-notes" class="whisper-notes">
+            <textarea id="whisper-notepad" class="whisper-notepad" placeholder="나만 볼 수 있는 업무 비망록..."></textarea>
+          </div>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">📎 첨부파일</h4>
+          <div id="attachments-list" class="attachments-list">
+            <p class="placeholder-text">첨부파일이 없습니다.</p>
+          </div>
+        </div>
+        <div class="intel-section">
+          <h4 class="intel-section-title">👥 참여자</h4>
+          <div id="participants" class="participants-list"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Original Email Modal -->
+  <div id="email-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-subject" class="modal-title">원본 이메일</h3>
+        <button id="modal-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-meta">
+        <span id="modal-sender" class="modal-sender"></span>
+        <span id="modal-date" class="modal-date"></span>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Wiki Modal -->
+  <div id="wiki-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-container wiki-modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">📖 지식 베이스 (Wiki)</h3>
+        <button id="wiki-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="wiki-content" class="wiki-content"></div>
+    </div>
+  </div>
+
+  <!-- Telegram Action Modal -->
+  <div id="telegram-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-container telegram-modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">✈️ Telegram 원격 제어</h3>
+        <button id="telegram-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="telegram-content" class="telegram-content">
+        <div class="telegram-actions">
+          <button class="telegram-action-btn" data-action="approve">✅ 승인</button>
+          <button class="telegram-action-btn" data-action="reply">💬 빠른 답장</button>
+          <button class="telegram-action-btn" data-action="forward">↗️ 전달</button>
+        </div>
+        <div class="telegram-log" id="telegram-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-overlay" class="settings-overlay" style="display:none;">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>⚙️ 설정</h2>
+        <button class="settings-close" onclick="closeSettings()">&times;</button>
+      </div>
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="accounts" onclick="switchSettingsTab('accounts')">📧 메일 계정</button>
+        <button class="settings-tab" data-tab="ai" onclick="switchSettingsTab('ai')">🤖 AI 연결</button>
+        <button class="settings-tab" data-tab="signatures" onclick="switchSettingsTab('signatures')">✍️ 서명</button>
+        <button class="settings-tab" data-tab="telegram" onclick="switchSettingsTab('telegram')">✈️ Telegram</button>
+        <button class="settings-tab" data-tab="cloud" onclick="switchSettingsTab('cloud')">☁️ 클라우드</button>
+      </div>
+      <div id="settings-body" class="settings-body"></div>
+    </div>
+  </div>
+
+  <!-- Compose Email Modal -->
+  <div id="compose-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-container" style="max-width:700px;">
+      <div class="modal-header">
+        <h3>✉️ 새 메일 작성</h3>
+        <button class="modal-close" onclick="document.getElementById('compose-modal').style.display='none'">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <!-- Recipient (To) -->
+        <div style="margin-bottom:12px; position:relative;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="font-size:13px;color:var(--text-secondary);">받는 사람</label>
+            <button id="toggle-cc-bcc-btn" style="background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;padding:0;">참조/숨은참조 추가</button>
+          </div>
+          <input id="compose-to" type="text" placeholder="이름 또는 이메일 검색..." autocomplete="off"
+            style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;">
+          <div id="autocomplete-to" class="autocomplete-dropdown" style="display:none;"></div>
+        </div>
+        
+        <!-- Cc -->
+        <div id="cc-bcc-container" style="display:none;">
+          <div style="margin-bottom:12px; position:relative;">
+            <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">참조 (Cc)</label>
+            <input id="compose-cc" type="text" placeholder="참조할 이름 또는 이메일 검색..." autocomplete="off"
+              style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;">
+            <div id="autocomplete-cc" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+          
+          <!-- Bcc -->
+          <div style="margin-bottom:12px; position:relative;">
+            <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">숨은참조 (Bcc)</label>
+            <input id="compose-bcc" type="text" placeholder="숨은참조 이름 또는 이메일 검색..." autocomplete="off"
+              style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;">
+            <div id="autocomplete-bcc" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">제목</label>
+          <input id="compose-subject" type="text" placeholder="메일 제목" 
+            style="width:100%;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px;">본문</label>
+          
+          <!-- RTE Toolbar -->
+          <div class="rte-toolbar" style="display:flex; gap:4px; margin-bottom:8px; padding:6px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-subtle);">
+            <button type="button" class="rte-btn" data-command="bold" title="굵게 (Cmd+B)"><b>B</b></button>
+            <button type="button" class="rte-btn" data-command="italic" title="기울임 (Cmd+I)"><i>I</i></button>
+            <button type="button" class="rte-btn" data-command="underline" title="밑줄 (Cmd+U)"><u>U</u></button>
+            <div style="width:1px; background:var(--border-subtle); margin:0 4px;"></div>
+            <button type="button" class="rte-btn" data-command="justifyLeft" title="왼쪽 정렬">⫷</button>
+            <button type="button" class="rte-btn" data-command="justifyCenter" title="가운데 정렬">≣</button>
+            <button type="button" class="rte-btn" data-command="justifyRight" title="오른쪽 정렬">⫸</button>
+            <div style="width:1px; background:var(--border-subtle); margin:0 4px;"></div>
+            <button type="button" class="rte-btn" data-command="insertOrderedList" title="번호 매기기">1.</button>
+            <button type="button" class="rte-btn" data-command="insertUnorderedList" title="글머리 기호">•</button>
+            <div style="width:1px; background:var(--border-subtle); margin:0 4px;"></div>
+            <button type="button" class="rte-btn" id="rte-link-btn" title="링크 삽입">🔗</button>
+            <button type="button" class="rte-btn" data-command="removeFormat" title="서식 지우기">𝖳x</button>
+          </div>
+
+          <div id="compose-body" contenteditable="true" 
+            style="width:100%;min-height:250px;padding:14px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;line-height:1.6;outline:none;overflow-y:auto;">
+          </div>
+        </div>
+        
+        <!-- Attachments Area -->
+        <div id="compose-attachments" style="display:none; gap:6px; flex-wrap:wrap; margin-bottom:12px;"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="compose-signature" style="padding:8px 12px;background:var(--bg-tertiary);border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-secondary);font-size:13px;">
+              <option value="">서명 없음</option>
+            </select>
+            <button id="compose-attach-btn" type="button" title="파일 첨부"
+              style="padding:8px; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:8px; color:var(--text-secondary); cursor:pointer; font-size:14px;">
+              📎
+            </button>
+          </div>
+          <button id="compose-send-btn" 
+            style="padding:10px 24px;background:linear-gradient(135deg,#007AFF,#5856D6);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+            📤 보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/context-menu.js"></script>
+  <script type="module" src="js/groups.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/settings.js"></script>
+  <script type="module" src="js/calendar.js"></script>
+</body>
+</html>

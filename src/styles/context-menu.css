@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════
+   Context Menu - Right-click/Ctrl-click menus
+   ═══════════════════════════════════════════════════ */
+
+.context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 200px;
+  background: rgba(40, 40, 50, 0.96);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 6px 0;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  animation: contextMenuIn 0.12s ease-out;
+  font-family: 'Inter', -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+@keyframes contextMenuIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #e8e8ed;
+  cursor: pointer;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.context-menu-item:hover {
+  background: rgba(99, 102, 241, 0.35);
+}
+
+.context-menu-item .cm-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.context-menu-item .cm-label {
+  flex: 1;
+}
+
+.context-menu-item .cm-shortcut {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin-left: 16px;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 4px 8px;
+}
+
+.context-menu-item.danger {
+  color: #ff453a;
+}
+.context-menu-item.danger:hover {
+  background: rgba(255, 69, 58, 0.25);
+}
+
+.context-menu-header {
+  padding: 6px 14px 4px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
