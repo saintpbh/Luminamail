@@ -141,6 +141,21 @@ document.addEventListener('keydown', async (e) => {
     window.location.reload();
   }
 
+  // Cmd+, → Settings
+  if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+    e.preventDefault();
+    if (typeof openSettings === 'function') {
+      openSettings();
+    }
+  }
+  // Cmd+Option+I → DevTools
+  if ((e.metaKey || e.ctrlKey) && e.altKey && e.key === 'i') {
+    e.preventDefault();
+    if (window.__TAURI__ && window.__TAURI__.core) {
+      window.__TAURI__.core.invoke('tauri', { __tauriModule: 'Window', message: { cmd: 'manage', data: { cmd: { type: '__toggleDevtools' }}}}).catch(() => {});
+    }
+  }
+
   // ⌘/ = shortcut guide
   if ((e.metaKey || e.ctrlKey) && e.key === '/') {
     e.preventDefault();
@@ -413,6 +428,13 @@ async function triggerBackgroundSync() {
 async function loadThreads() {
   try {
     state.threads = await invoke('get_threads', { filter: state.filter || 'all' }) || [];
+    // Debug: check if ai_tags is populated
+    const tagged = state.threads.filter(t => t.ai_tags);
+    if (tagged.length > 0) {
+      console.log('[loadThreads] Threads with ai_tags:', tagged.map(t => ({ id: t.thread_id, ai_tags: t.ai_tags })));
+    } else {
+      console.log('[loadThreads] No threads have ai_tags set. Sample thread keys:', state.threads[0] ? Object.keys(state.threads[0]) : 'none');
+    }
     renderThreadList();
     
     // Background pre-fetch all thread messages for instant access
@@ -646,9 +668,18 @@ async function renderIntelPanel() {
         `;
       }
       
-      // Show AI Tags
+      // Show AI Tags (merge with existing manual tags)
       if (result.tags && result.tags.length > 0) {
-        document.getElementById('hashtags').innerHTML = result.tags.map(tag =>
+        const existingTags = new Set();
+        // Keep manual tags from thread.ai_tags
+        if (thread.ai_tags) {
+          thread.ai_tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => {
+            existingTags.add(t.startsWith('#') ? t : `#${t}`);
+          });
+        }
+        // Add AI tags
+        result.tags.forEach(t => existingTags.add(t));
+        document.getElementById('hashtags').innerHTML = Array.from(existingTags).map(tag =>
           `<span class="hashtag">${tag}</span>`
         ).join('');
       }
@@ -1217,14 +1248,89 @@ function setupEventListeners() {
     }
   });
 
-  // Search
-  document.getElementById('search-input').addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    document.querySelectorAll('.thread-item').forEach(item => {
-      const text = item.textContent.toLowerCase();
-      item.style.display = text.includes(query) ? '' : 'none';
+  // Search with tag chips
+  const searchInput = document.getElementById('search-input');
+  const chipsArea = document.getElementById('search-chips-area');
+  const searchChips = []; // array of tag strings in chips
+
+  // Click on chips area focuses input
+  chipsArea.addEventListener('click', () => searchInput.focus());
+
+  function createChip(tag) {
+    const normalized = tag.replace(/^#/, '').trim();
+    if (!normalized || searchChips.includes(normalized)) return;
+
+    searchChips.push(normalized);
+
+    const chip = document.createElement('span');
+    chip.className = 'search-chip';
+    chip.dataset.tag = normalized;
+    chip.innerHTML = `🏷️ ${normalized} <span class="chip-remove">×</span>`;
+
+    chip.querySelector('.chip-remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = searchChips.indexOf(normalized);
+      if (idx > -1) searchChips.splice(idx, 1);
+      chip.remove();
+      triggerSearch();
+      searchInput.focus();
     });
+
+    chipsArea.insertBefore(chip, searchInput);
+    searchInput.value = '';
+    searchInput.placeholder = searchChips.length > 0 ? '추가 검색...' : '메일 검색...';
+    triggerSearch();
+  }
+
+  searchInput.addEventListener('keydown', (e) => {
+    const val = searchInput.value;
+
+    // Comma or Enter after #tag → create chip
+    if ((e.key === ',' || e.key === 'Enter') && val.trim().startsWith('#')) {
+      e.preventDefault();
+      createChip(val.trim());
+      return;
+    }
+
+    // Backspace on empty input → remove last chip
+    if (e.key === 'Backspace' && val === '' && searchChips.length > 0) {
+      const lastChip = chipsArea.querySelector('.search-chip:last-of-type');
+      if (lastChip) {
+        const tag = lastChip.dataset.tag;
+        const idx = searchChips.indexOf(tag);
+        if (idx > -1) searchChips.splice(idx, 1);
+        lastChip.remove();
+        searchInput.placeholder = searchChips.length > 0 ? '추가 검색...' : '메일 검색...';
+        triggerSearch();
+      }
+    }
   });
+
+  searchInput.addEventListener('input', () => triggerSearch());
+
+  function triggerSearch() {
+    const freeText = searchInput.value.toLowerCase().trim();
+
+    document.querySelectorAll('.thread-item').forEach(item => {
+      if (searchChips.length === 0 && !freeText) {
+        item.style.display = '';
+        return;
+      }
+
+      const text = item.textContent.toLowerCase();
+      const threadId = item.dataset.threadId;
+      const threadData = state.threads.find(t => t.thread_id === threadId);
+      const aiTags = (threadData && threadData.ai_tags) ? threadData.ai_tags.toLowerCase() : '';
+      const combined = text + ' ' + aiTags;
+
+      // All chip tags must match (AND)
+      const chipsMatch = searchChips.every(chip => combined.includes(chip));
+      // Free text must also match (if present)
+      const textMatch = !freeText || combined.includes(freeText.replace(/^#/, ''));
+
+      item.style.display = (chipsMatch && textMatch) ? '' : 'none';
+    });
+  }
 
   // Attachment search toggle
   document.getElementById('attachment-search-btn').addEventListener('click', () => {
@@ -1276,14 +1382,95 @@ function setupEventListeners() {
     document.getElementById('telegram-modal').style.display = 'flex';
   });
 
-  // Telegram action buttons
-  document.querySelectorAll('.telegram-action-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-      const actions = { approve: '✅ 승인 전송됨', reply: '💬 빠른 답장 전송됨', forward: '↗️ 전달 완료' };
-      addTelegramLog(actions[action] || action);
-    });
+  // Manual Tag button
+  const addTagBtn = document.getElementById('add-tag-btn');
+  if (addTagBtn) {
+    addTagBtn.addEventListener('click', addManualTag);
+  }
+}
+
+// ─── Manual Tagging ───
+async function addManualTag() {
+  if (!state.currentThreadId) {
+    showToast('태그를 추가할 대화를 먼저 선택해주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('add-tag-btn');
+  if (!btn) return;
+
+  // Check if input already visible
+  if (btn.nextElementSibling && btn.nextElementSibling.classList.contains('tag-input-wrap')) {
+    btn.nextElementSibling.querySelector('input').focus();
+    return;
+  }
+
+  // Create inline input
+  const wrap = document.createElement('div');
+  wrap.className = 'tag-input-wrap';
+  wrap.style.cssText = 'display:flex;gap:4px;margin-top:6px;align-items:center;';
+  wrap.innerHTML = `
+    <input type="text" id="manual-tag-input" placeholder="태그 입력 (예: 긴급)" 
+      style="flex:1;padding:4px 8px;border-radius:8px;border:1px solid var(--border-subtle);background:rgba(255,255,255,0.05);color:var(--text-primary);font-size:12px;outline:none;" />
+    <button id="manual-tag-confirm" style="padding:4px 8px;border-radius:8px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:11px;cursor:pointer;">추가</button>
+    <button id="manual-tag-cancel" style="padding:4px 8px;border-radius:8px;border:1px solid var(--border-subtle);background:transparent;color:var(--text-muted);font-size:11px;cursor:pointer;">✕</button>
+  `;
+  btn.parentElement.appendChild(wrap);
+
+  const input = wrap.querySelector('#manual-tag-input');
+  const confirmBtn = wrap.querySelector('#manual-tag-confirm');
+  const cancelBtn = wrap.querySelector('#manual-tag-cancel');
+
+  input.focus();
+
+  async function submitTag() {
+    const tag = input.value.trim();
+    if (!tag) return;
+
+    console.log('[ManualTag] Adding tag:', tag, 'to thread:', state.currentThreadId);
+    showToast(`태그 "${tag}" 추가 중...`);
+
+    try {
+      await invoke('add_thread_tag_cmd', { threadId: state.currentThreadId, tag: tag });
+      console.log('[ManualTag] Tag added successfully');
+      showToast(`✅ 태그 "${tag}" 추가 완료!`);
+
+      // Remove input first
+      wrap.remove();
+
+      // Refresh
+      const scrollPos = document.getElementById('thread-list').scrollTop;
+      await loadThreads();
+      if (state.currentThreadId) {
+        await selectThread(state.currentThreadId);
+      }
+      document.getElementById('thread-list').scrollTop = scrollPos;
+    } catch (err) {
+      console.error('[ManualTag] 태그 추가 실패:', err);
+      showToast(`❌ 태그 추가 실패: ${err}`);
+    }
+  }
+
+  confirmBtn.addEventListener('click', submitTag);
+  cancelBtn.addEventListener('click', () => wrap.remove());
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitTag();
+    if (e.key === 'Escape') wrap.remove();
   });
+}
+window.addManualTag = addManualTag;
+
+function showToast(message) {
+  let toast = document.getElementById('simple-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'simple-toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:10px;font-size:13px;z-index:99999;transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 2500);
 }
 
 // ─── Helpers ───

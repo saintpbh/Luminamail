@@ -107,7 +107,7 @@ export function renderThreadItem(thread, isActive) {
   };
 
   return `
-    <div class="${classes}" data-thread-id="${thread.thread_id}">
+    <div class="${classes}" data-thread-id="${thread.thread_id}" data-tags="${escapeHtml(thread.ai_tags || '')}">
       <div class="thread-avatar ${colorClass}">
         <span class="avatar-letter">${initial}</span>
         ${dynamicEmoji ? `<span class="dynamic-emoji">${dynamicEmoji}</span>` : ''}
@@ -576,6 +576,14 @@ function extractHashtags(thread) {
   if (/디자인|시안|피드백/.test(s)) tags.add('#디자인');
   if (/회식|투표/.test(s)) tags.add('#팀빌딩');
   if (/기도/.test(s)) tags.add('#기도');
+
+  // Include manually added tags from ai_tags column
+  if (thread.ai_tags) {
+    thread.ai_tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => {
+      tags.add(t.startsWith('#') ? t : `#${t}`);
+    });
+  }
+
   if (tags.size === 0) tags.add('#일반');
   return Array.from(tags);
 }

@@ -53,6 +53,12 @@ pub async fn get_messages_by_date(state: State<'_, AppState>, date: String) -> R
     db::get_messages_by_date(&pool, &date).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub async fn add_thread_tag_cmd(state: State<'_, AppState>, thread_id: String, tag: String) -> Result<(), String> {
+    let pool = state.db.lock().await;
+    db::add_thread_tag(&pool, &thread_id, &tag).await.map_err(|e| e.to_string())
+}
+
 // ╔═══════════════════════════════════════════════╗
 // ║   TELEGRAM                                    ║
 // ╚═══════════════════════════════════════════════╝

@@ -349,6 +349,27 @@ pub async fn create_message(pool: &SqlitePool, thread_id: &str, body_text: &str,
     Ok(())
 }
 
+pub async fn add_thread_tag(pool: &SqlitePool, thread_id: &str, tag: &str) -> Result<(), sqlx::Error> {
+    let current: Option<(Option<String>,)> = sqlx::query_as("SELECT ai_tags FROM chat_rooms WHERE thread_id = ?")
+        .bind(thread_id).fetch_optional(pool).await?;
+
+    if let Some((tags_opt,)) = current {
+        let mut tags: Vec<String> = match tags_opt {
+            Some(s) if !s.is_empty() => s.split(',').map(|s| s.trim().to_string()).collect(),
+            _ => vec![],
+        };
+
+        let normalized_tag = tag.trim().to_string();
+        if !tags.contains(&normalized_tag) && !normalized_tag.is_empty() {
+            tags.push(normalized_tag);
+            let new_tags_str = tags.join(",");
+            sqlx::query("UPDATE chat_rooms SET ai_tags = ? WHERE thread_id = ?")
+                .bind(new_tags_str).bind(thread_id).execute(pool).await?;
+        }
+    }
+    Ok(())
+}
+
 pub async fn get_messages_by_date(pool: &SqlitePool, date: &str) -> Result<Vec<Message>, sqlx::Error> {
     let mut messages: Vec<Message> = sqlx::query_as(
         "SELECT id, thread_id, message_type, sender_identity, sender_name, body_summary, body_original, icon_type, emoji_tag, hashtags, created_at, is_outgoing, ai_summary, ai_translation, ai_processed

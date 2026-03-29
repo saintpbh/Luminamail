@@ -148,6 +148,7 @@ pub fn run() {
             // Phase 14: AI Intelligence
             commands::process_email_ai_cmd,
             commands::translate_email_cmd,
+            commands::add_thread_tag_cmd,
             commands::test_ai_connection_cmd,
             commands::get_available_models_cmd,
         ])
