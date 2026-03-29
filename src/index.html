@@ -606,7 +606,225 @@
       </div>
     </div>
   </div>
+  <!-- Help Guide Modal -->
+  <div id="help-modal" class="help-modal-overlay" style="display:none;">
+    <div class="help-modal">
+      <div class="help-header">
+        <h2>📖 Lumina Mail 사용 설명서</h2>
+        <button id="help-close-btn" class="help-close-btn">&times;</button>
+      </div>
+      <div class="help-body">
+        <nav class="help-nav">
+          <button class="help-nav-btn active" data-section="start">🚀 시작하기</button>
+          <button class="help-nav-btn" data-section="email">✉️ 이메일 설정</button>
+          <button class="help-nav-btn" data-section="search">🔍 검색 & 태그</button>
+          <button class="help-nav-btn" data-section="ai">🤖 AI 기능</button>
+          <button class="help-nav-btn" data-section="shortcuts">⌨️ 단축키</button>
+          <button class="help-nav-btn" data-section="cloud">☁️ 클라우드</button>
+          <button class="help-nav-btn" data-section="faq">❓ FAQ</button>
+        </nav>
+        <div class="help-content">
+          <!-- 시작하기 -->
+          <div class="help-section active" data-section="start">
+            <h3>🚀 Lumina Mail 시작하기</h3>
+            <p>Lumina Mail은 AI 기반의 채팅형 이메일 클라이언트입니다. 기존 이메일을 채팅처럼 읽고 관리할 수 있습니다.</p>
+            <div class="help-steps">
+              <div class="help-step">
+                <span class="step-number">1</span>
+                <div>
+                  <strong>이메일 계정 추가</strong>
+                  <p><kbd>Cmd</kbd> + <kbd>,</kbd> 를 눌러 설정을 열고, 이메일 계정 정보(IMAP/SMTP)를 입력하세요.</p>
+                </div>
+              </div>
+              <div class="help-step">
+                <span class="step-number">2</span>
+                <div>
+                  <strong>메일 동기화</strong>
+                  <p>계정 추가 후 "동기화" 버튼을 누르면 INBOX의 메일이 자동으로 가져와집니다.</p>
+                </div>
+              </div>
+              <div class="help-step">
+                <span class="step-number">3</span>
+                <div>
+                  <strong>대화 선택</strong>
+                  <p>왼쪽 메일 목록에서 대화를 클릭하면 채팅 형태로 메일이 표시됩니다.</p>
+                </div>
+              </div>
+              <div class="help-step">
+                <span class="step-number">4</span>
+                <div>
+                  <strong>답장 보내기</strong>
+                  <p>하단 입력창에 답장을 작성 후 전송 버튼(또는 Enter)을 누르세요. 5초 내 취소 가능합니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- 이메일 설정 -->
+          <div class="help-section" data-section="email">
+            <h3>✉️ 이메일 계정 설정</h3>
+            <p><kbd>Cmd</kbd> + <kbd>,</kbd> 로 설정을 열어 계정을 관리하세요.</p>
+            <h4>Gmail 설정 예시</h4>
+            <table class="help-table">
+              <tr><th>항목</th><th>값</th></tr>
+              <tr><td>IMAP 서버</td><td>imap.gmail.com</td></tr>
+              <tr><td>IMAP 포트</td><td>993</td></tr>
+              <tr><td>SMTP 서버</td><td>smtp.gmail.com</td></tr>
+              <tr><td>SMTP 포트</td><td>587</td></tr>
+              <tr><td>사용자명</td><td>your@gmail.com</td></tr>
+              <tr><td>비밀번호</td><td>앱 비밀번호 (2차 인증 필요)</td></tr>
+            </table>
+            <div class="help-tip">
+              <strong>💡 Gmail 앱 비밀번호 생성:</strong>
+              <p>Google 계정 → 보안 → 2단계 인증 활성화 → 앱 비밀번호 생성 → 16자리 코드를 비밀번호 칸에 입력</p>
+            </div>
+            <h4>Outlook / Hotmail 설정</h4>
+            <table class="help-table">
+              <tr><th>항목</th><th>값</th></tr>
+              <tr><td>IMAP 서버</td><td>outlook.office365.com</td></tr>
+              <tr><td>IMAP 포트</td><td>993</td></tr>
+              <tr><td>SMTP 서버</td><td>smtp.office365.com</td></tr>
+              <tr><td>SMTP 포트</td><td>587</td></tr>
+            </table>
+            <h4>Naver 메일 설정</h4>
+            <table class="help-table">
+              <tr><th>항목</th><th>값</th></tr>
+              <tr><td>IMAP 서버</td><td>imap.naver.com</td></tr>
+              <tr><td>IMAP 포트</td><td>993</td></tr>
+              <tr><td>SMTP 서버</td><td>smtp.naver.com</td></tr>
+              <tr><td>SMTP 포트</td><td>587</td></tr>
+            </table>
+            <div class="help-tip">
+              <strong>💡 Naver 메일:</strong> 네이버 메일 설정 → POP3/IMAP 사용 허용 필요
+            </div>
+          </div>
+
+          <!-- 검색 & 태그 -->
+          <div class="help-section" data-section="search">
+            <h3>🔍 검색 & 태그 기능</h3>
+            <h4>태그 검색</h4>
+            <p>검색창에 <code>#태그이름</code> 입력 후 <kbd>,</kbd> 또는 <kbd>Enter</kbd>를 누르면 태그가 칩(뱃지) 형태로 변환됩니다.</p>
+            <div class="help-example">
+              <span class="search-chip" style="display:inline-flex;pointer-events:none;">🏷️ 개발용</span>
+              <span class="search-chip" style="display:inline-flex;pointer-events:none;">🏷️ 긴급</span>
+              <span style="color:var(--text-muted);font-size:13px;">← 이렇게 표시됩니다</span>
+            </div>
+            <ul>
+              <li>여러 태그 칩 = <strong>AND 조건</strong> (모든 태그를 가진 메일만 표시)</li>
+              <li>태그 칩 + 일반 텍스트 = 동시 필터링 가능</li>
+              <li>칩의 <strong>×</strong> 클릭 또는 <kbd>Backspace</kbd>로 제거</li>
+            </ul>
+            <h4>수동 태그 추가</h4>
+            <p>대화 선택 → 우측 인텔리전스 패널 → <strong>"+ 태그 추가"</strong> 버튼 클릭 → 태그명 입력 후 "추가"</p>
+            <h4>필터 버튼</h4>
+            <ul>
+              <li><strong>전체</strong> — 모든 메일 표시</li>
+              <li><strong>안 읽음</strong> — 읽지 않은 메일만</li>
+              <li><strong>고정</strong> — 핀 고정된 메일만</li>
+              <li><strong>⭐ 중요</strong> — 중요 표시된 메일만</li>
+              <li><strong>📋 조치필요</strong> — AI가 감지한 액션 아이템</li>
+              <li><strong>🎬 미디어</strong> — 첨부파일이 있는 메일</li>
+            </ul>
+          </div>
+
+          <!-- AI 기능 -->
+          <div class="help-section" data-section="ai">
+            <h3>🤖 AI 기능 (Gemini)</h3>
+            <div class="help-tip">
+              <strong>⚙️ API 키 설정 필요:</strong>
+              <p><kbd>Cmd</kbd> + <kbd>,</kbd> → AI 설정 → Google Gemini API 키 입력</p>
+              <p>키 발급: <code>aistudio.google.com</code>에서 무료로 발급 가능</p>
+            </div>
+            <h4>AI 요약</h4>
+            <p>대화를 선택하면 우측 인텔리전스 패널에 AI가 핵심 내용을 자동 요약합니다.</p>
+            <h4>AI 번역</h4>
+            <p>외국어 이메일의 경우 "🌐 번역 보기" 버튼으로 한국어 번역을 확인할 수 있습니다.</p>
+            <h4>자동 태그 분류</h4>
+            <p>AI가 이메일 내용을 분석하여 자동으로 카테고리 태그를 부여합니다. (보고서, 긴급, 회의 등)</p>
+            <h4>비용 절감</h4>
+            <p>Regex 기반 사전 분류로 API 호출을 80% 절감합니다. 간단한 분류는 로컬에서, 복잡한 분석만 AI가 처리합니다.</p>
+          </div>
+
+          <!-- 단축키 -->
+          <div class="help-section" data-section="shortcuts">
+            <h3>⌨️ 키보드 단축키</h3>
+            <table class="help-table shortcuts-table">
+              <tr><th>단축키</th><th>기능</th></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>,</kbd></td><td>설정 열기</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>K</kbd></td><td>검색창 포커스</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>R</kbd></td><td>페이지 새로고침</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>?</kbd></td><td>이 도움말 열기</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>/</kbd></td><td>단축키 가이드 토글</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>I</kbd></td><td>개발자 도구 열기</td></tr>
+              <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>이전/다음 대화 이동</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>U</kbd></td><td>읽지 않음 토글</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>I</kbd></td><td>중요 토글</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>P</kbd></td><td>핀 고정 토글</td></tr>
+              <tr><td><kbd>Cmd</kbd> + <kbd>Backspace</kbd></td><td>대화 삭제</td></tr>
+              <tr><td><kbd>Enter</kbd></td><td>답장 전송</td></tr>
+            </table>
+          </div>
+
+          <!-- 클라우드 -->
+          <div class="help-section" data-section="cloud">
+            <h3>☁️ 클라우드 백업</h3>
+            <p>대용량 첨부파일(10MB 이상)은 자동으로 클라우드에 업로드됩니다.</p>
+            <h4>지원 서비스</h4>
+            <ul>
+              <li><strong>Google Drive</strong> — Google 계정으로 OAuth 연결</li>
+              <li><strong>OneDrive</strong> — Microsoft 계정으로 OAuth 연결</li>
+            </ul>
+            <h4>설정 방법</h4>
+            <div class="help-steps">
+              <div class="help-step">
+                <span class="step-number">1</span>
+                <div><strong>설정 열기:</strong> <kbd>Cmd</kbd> + <kbd>,</kbd></div>
+              </div>
+              <div class="help-step">
+                <span class="step-number">2</span>
+                <div><strong>클라우드 탭 이동</strong> → Google Drive 또는 OneDrive "연결" 클릭</div>
+              </div>
+              <div class="help-step">
+                <span class="step-number">3</span>
+                <div><strong>OAuth 인증:</strong> 브라우저에서 계정 로그인 후 권한 허용</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAQ -->
+          <div class="help-section" data-section="faq">
+            <h3>❓ 자주 묻는 질문</h3>
+            <div class="help-faq">
+              <div class="faq-item">
+                <strong>Q. 메일이 동기화되지 않아요</strong>
+                <p>A. 설정에서 계정의 IMAP 서버 정보를 확인하세요. Gmail의 경우 앱 비밀번호를 사용해야 합니다. "연결 테스트" 버튼으로 확인할 수 있습니다.</p>
+              </div>
+              <div class="faq-item">
+                <strong>Q. AI 요약이 작동하지 않아요</strong>
+                <p>A. 설정 → AI 설정에서 Gemini API 키가 올바르게 입력되었는지 확인하세요. "AI 연결 테스트" 버튼으로 확인 가능합니다.</p>
+              </div>
+              <div class="faq-item">
+                <strong>Q. Gmail에서 "앱 비밀번호"는 어떻게 만드나요?</strong>
+                <p>A. Google 계정 → 보안 → 2단계 인증 활성화 → <a href="https://myaccount.google.com/apppasswords" style="color:var(--accent);">앱 비밀번호 페이지</a>에서 "메일" 앱을 선택하고 생성하세요.</p>
+              </div>
+              <div class="faq-item">
+                <strong>Q. 보낸 메일을 취소하고 싶어요</strong>
+                <p>A. 메일 전송 후 5초 이내에 화면 하단의 "전송 취소" 버튼을 누르면 전송이 취소됩니다.</p>
+              </div>
+              <div class="faq-item">
+                <strong>Q. 데이터는 어디에 저장되나요?</strong>
+                <p>A. 모든 데이터는 사용자의 로컬 컴퓨터(SQLite DB)에 저장됩니다. 외부 서버로 전송되지 않습니다. (AI 요약 시에만 Gemini API로 이메일 내용이 전송됩니다.)</p>
+              </div>
+              <div class="faq-item">
+                <strong>Q. 여러 이메일 계정을 동시에 사용할 수 있나요?</strong>
+                <p>A. 네, 설정에서 여러 계정을 추가할 수 있습니다. 각 계정의 메일은 하나의 통합 리스트에 표시되며, 수신 계정 이름이 옆에 표시됩니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="js/context-menu.js"></script>
   <script type="module" src="js/groups.js"></script>
   <script type="module" src="js/auth.js"></script>

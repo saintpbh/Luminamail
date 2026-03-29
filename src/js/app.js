@@ -161,6 +161,60 @@ document.addEventListener('keydown', async (e) => {
     e.preventDefault();
     toggleShortcutGuide();
   }
+
+  // ⌘? = help guide
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '?') {
+    e.preventDefault();
+    openHelp();
+  }
+
+  // Escape to close help
+  if (e.key === 'Escape') {
+    const helpModal = document.getElementById('help-modal');
+    if (helpModal && helpModal.style.display !== 'none') {
+      closeHelp();
+    }
+  }
+});
+
+// ─── Help Guide ───
+function openHelp() {
+  const m = document.getElementById('help-modal');
+  if (m) m.style.display = '';
+}
+function closeHelp() {
+  const m = document.getElementById('help-modal');
+  if (m) m.style.display = 'none';
+}
+window.openHelp = openHelp;
+window.closeHelp = closeHelp;
+
+// Help modal events
+document.addEventListener('DOMContentLoaded', () => {
+  const helpModal = document.getElementById('help-modal');
+  if (!helpModal) return;
+
+  // Close button
+  document.getElementById('help-close-btn')?.addEventListener('click', closeHelp);
+
+  // Close on overlay click
+  helpModal.addEventListener('click', (e) => {
+    if (e.target === helpModal) closeHelp();
+  });
+
+  // Section navigation
+  helpModal.querySelectorAll('.help-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = btn.dataset.section;
+      // Toggle nav buttons
+      helpModal.querySelectorAll('.help-nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Toggle sections
+      helpModal.querySelectorAll('.help-section').forEach(s => s.classList.remove('active'));
+      const target = helpModal.querySelector(`.help-section[data-section="${section}"]`);
+      if (target) target.classList.add('active');
+    });
+  });
 });
 
 // ── Thread Navigation Helper ──
