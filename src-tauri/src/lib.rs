@@ -202,6 +202,8 @@ pub fn run() {
             
             // Help submenu
             let help_menu = SubmenuBuilder::new(app_handle, "도움말")
+                .item(&MenuItem::with_id(app_handle, "help_guide", "📖 사용 설명서", true, Some("CmdOrCtrl+Shift+/"))?)
+                .separator()
                 .item(&MenuItem::with_id(app_handle, "shortcut_guide", "단축키 안내", true, Some("CmdOrCtrl+/"))?)
                 .build()?;
             

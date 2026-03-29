@@ -1836,6 +1836,9 @@ try {
       case 'shortcut_guide':
         toggleShortcutGuide();
         break;
+      case 'help_guide':
+        openHelp();
+        break;
     }
   });
 } catch (e) { /* menu events not available outside Tauri */ }
