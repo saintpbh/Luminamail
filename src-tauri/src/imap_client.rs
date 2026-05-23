@@ -390,11 +390,6 @@ fn extract_body(parsed: &ParsedMail) -> (String, Option<String>) {
         }
     }
 
-    // Truncate for summary
-    if text_body.chars().count() > 500 {
-        text_body = text_body.chars().take(500).collect();
-    }
-
     (text_body.trim().to_string(), html_body)
 }
 

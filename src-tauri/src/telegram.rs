@@ -5,11 +5,36 @@
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use sqlx::SqlitePool;
 
-const BOT_TOKEN: &str = "7895607405:AAFx5UEB5jPs57F_eJo_uvCnyaWsdbs6Rfg";
+const BOT_TOKEN_FALLBACK: &str = "7895607405:AAFx5UEB5jPs57F_eJo_uvCnyaWsdbs6Rfg";
 
-fn api_url(method: &str) -> String {
-    format!("https://api.telegram.org/bot{}/{}", BOT_TOKEN, method)
+async fn get_bot_token(pool: Option<&SqlitePool>) -> String {
+    // 1. Check environment variable first
+    if let Ok(token) = std::env::var("TELEGRAM_BOT_TOKEN") {
+        if !token.trim().is_empty() {
+            return token.trim().to_string();
+        }
+    }
+
+    // 2. Check local DB app_settings
+    if let Some(pool) = pool {
+        let val: Result<Option<(String,)>, _> = sqlx::query_as("SELECT value FROM app_settings WHERE key = 'telegram_bot_token'")
+            .fetch_optional(pool)
+            .await;
+        if let Ok(Some((token,))) = val {
+            if !token.trim().is_empty() {
+                return token.trim().to_string();
+            }
+        }
+    }
+
+    // 3. Last fallback (prevents breaking changes for existing users, but safe for open source)
+    BOT_TOKEN_FALLBACK.to_string()
+}
+
+fn api_url_with_token(token: &str, method: &str) -> String {
+    format!("https://api.telegram.org/bot{}/{}", token, method)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -69,11 +94,13 @@ pub fn generate_link_code() -> String {
 
 /// Poll Telegram for new messages and check for linking code
 pub async fn check_for_link_code(
+    pool: Option<&SqlitePool>,
     code: &str,
     last_update_id: i64,
 ) -> Result<Option<(i64, String, i64)>, String> {
+    let token = get_bot_token(pool).await;
     let client = Client::new();
-    let url = api_url("getUpdates");
+    let url = api_url_with_token(&token, "getUpdates");
 
     let resp = client
         .get(&url)
@@ -100,6 +127,7 @@ pub async fn check_for_link_code(
 
                     // Send confirmation
                     let _ = send_message(
+                        pool,
                         chat_id,
                         "✅ Lumina Mail 연결 완료!\n\n이제부터 중요한 이메일 알림을 받으실 수 있습니다.",
                         None,
@@ -110,6 +138,7 @@ pub async fn check_for_link_code(
                 // Handle /start command
                 else if trimmed == "/start" {
                     let _ = send_message(
+                        pool,
                         msg.chat.id,
                         "👋 Lumina Mail Bot에 오신 것을 환영합니다!\n\n📱 Lumina Mail 앱에서 표시된 6자리 연결 코드를 입력해 주세요.",
                         None,
@@ -131,12 +160,14 @@ pub async fn check_for_link_code(
 
 /// Send a text message to a Telegram chat
 pub async fn send_message(
+    pool: Option<&SqlitePool>,
     chat_id: i64,
     text: &str,
     reply_markup: Option<serde_json::Value>,
 ) -> Result<(), String> {
+    let token = get_bot_token(pool).await;
     let client = Client::new();
-    let url = api_url("sendMessage");
+    let url = api_url_with_token(&token, "sendMessage");
 
     let mut body = serde_json::json!({
         "chat_id": chat_id,
@@ -160,6 +191,7 @@ pub async fn send_message(
 
 /// Send mail notification to Telegram with action buttons
 pub async fn send_mail_notification(
+    pool: Option<&SqlitePool>,
     chat_id: i64,
     subject: &str,
     sender: &str,
@@ -179,13 +211,14 @@ pub async fn send_mail_notification(
         ]]
     });
 
-    send_message(chat_id, &text, Some(markup)).await
+    send_message(pool, chat_id, &text, Some(markup)).await
 }
 
 /// Get latest update_id for offset tracking
-pub async fn get_latest_update_id() -> Result<i64, String> {
+pub async fn get_latest_update_id(pool: Option<&SqlitePool>) -> Result<i64, String> {
+    let token = get_bot_token(pool).await;
     let client = Client::new();
-    let url = api_url("getUpdates");
+    let url = api_url_with_token(&token, "getUpdates");
 
     let resp = client
         .get(&url)

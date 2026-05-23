@@ -76,9 +76,11 @@ pub async fn telegram_start_linking(state: State<'_, AppState>) -> Result<String
 
 #[tauri::command]
 pub async fn telegram_poll_link(state: State<'_, AppState>, code: String) -> Result<Option<String>, String> {
+    let pool = state.db.lock().await;
     // Get latest offset, then poll for code match
-    let offset = telegram::get_latest_update_id().await.unwrap_or(0);
-    let result = telegram::check_for_link_code(&code, offset - 1).await?;
+    let offset = telegram::get_latest_update_id(Some(&pool)).await.unwrap_or(0);
+    let result = telegram::check_for_link_code(Some(&pool), &code, offset - 1).await?;
+    drop(pool);
 
     if let Some((chat_id, username, _update_id)) = result {
         let pool = state.db.lock().await;
@@ -107,7 +109,7 @@ pub async fn telegram_send_test(state: State<'_, AppState>) -> Result<(), String
     let link = db::get_telegram_link(&pool).await.map_err(|e| e.to_string())?;
     if let Some(link) = link {
         if let Some(chat_id) = link.chat_id {
-            telegram::send_message(chat_id, "🔔 <b>Lumina Mail 테스트</b>\n\n테스트 알림이 성공적으로 전송되었습니다!", None).await?;
+            telegram::send_message(Some(&pool), chat_id, "🔔 <b>Lumina Mail 테스트</b>\n\n테스트 알림이 성공적으로 전송되었습니다!", None).await?;
             Ok(())
         } else {
             Err("Telegram이 연결되지 않았습니다.".into())

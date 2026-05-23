@@ -3,6 +3,50 @@ use std::path::PathBuf;
 
 use crate::models::*;
 
+// ── Credentials Encryption/Decryption ──
+const DB_CRYPTO_KEY: &[u8] = b"LuminaMailSecretCryptoKey2026";
+
+fn encrypt_password(plain: &str) -> String {
+    let plain_bytes = plain.as_bytes();
+    let mut hex_str = String::with_capacity(plain_bytes.len() * 2);
+    for (i, &byte) in plain_bytes.iter().enumerate() {
+        let key_byte = DB_CRYPTO_KEY[i % DB_CRYPTO_KEY.len()];
+        let encrypted_byte = byte ^ key_byte;
+        hex_str.push_str(&format!("{:02x}", encrypted_byte));
+    }
+    hex_str
+}
+
+fn decrypt_password(hex_str: &str) -> Result<String, String> {
+    if hex_str.len() % 2 != 0 {
+        return Err("Invalid hex string length".to_string());
+    }
+    let mut decrypted = Vec::with_capacity(hex_str.len() / 2);
+    for i in (0..hex_str.len()).step_by(2) {
+        if i + 2 > hex_str.len() { break; }
+        let hex_byte = &hex_str[i..i+2];
+        let encrypted_byte = u8::from_str_radix(hex_byte, 16)
+            .map_err(|e| format!("Hex parse error: {}", e))?;
+        let key_byte = DB_CRYPTO_KEY[(i / 2) % DB_CRYPTO_KEY.len()];
+        decrypted.push(encrypted_byte ^ key_byte);
+    }
+    String::from_utf8(decrypted).map_err(|e| format!("UTF8 decode error: {}", e))
+}
+
+fn decrypt_password_safe(stored: &str) -> String {
+    match decrypt_password(stored) {
+        Ok(decrypted) => {
+            // Check if it's printable plain text to guarantee fallback correctness
+            if decrypted.chars().all(|c| !c.is_control() || c == '\n' || c == '\r' || c == '\t') {
+                decrypted
+            } else {
+                stored.to_string()
+            }
+        }
+        Err(_) => stored.to_string(),
+    }
+}
+
 pub async fn init_db(app_data_dir: PathBuf) -> Result<SqlitePool, Box<dyn std::error::Error>> {
     std::fs::create_dir_all(&app_data_dir)?;
     let db_path = app_data_dir.join("lumina_mail.db");
@@ -12,6 +56,12 @@ pub async fn init_db(app_data_dir: PathBuf) -> Result<SqlitePool, Box<dyn std::e
         .max_connections(5)
         .connect(&db_url)
         .await?;
+
+    // Enable WAL mode & Performance optimization PRAGMAs
+    let _ = sqlx::query("PRAGMA journal_mode = WAL").execute(&pool).await;
+    let _ = sqlx::query("PRAGMA synchronous = NORMAL").execute(&pool).await;
+    let _ = sqlx::query("PRAGMA temp_store = MEMORY").execute(&pool).await;
+    let _ = sqlx::query("PRAGMA cache_size = -64000").execute(&pool).await;
 
     // ── Core tables ──
     sqlx::query(
@@ -447,29 +497,38 @@ pub async fn delete_telegram_link(pool: &SqlitePool) -> Result<(), sqlx::Error> 
 // ╚═══════════════════════════════════════════════╝
 
 pub async fn get_email_accounts(pool: &SqlitePool) -> Result<Vec<EmailAccount>, sqlx::Error> {
-    sqlx::query_as(
+    let mut accounts: Vec<EmailAccount> = sqlx::query_as(
         "SELECT id, provider, email, display_name, imap_host, imap_port, smtp_host, smtp_port, username, password_encrypted, sync_mode, enabled, created_at
          FROM email_accounts ORDER BY created_at ASC"
-    ).fetch_all(pool).await
+    ).fetch_all(pool).await?;
+
+    for acc in &mut accounts {
+        if let Some(ref enc) = acc.password_encrypted {
+            acc.password_encrypted = Some(decrypt_password_safe(enc));
+        }
+    }
+    Ok(accounts)
 }
 
 pub async fn add_email_account(pool: &SqlitePool, provider: &str, email: &str, display_name: &str, imap_host: &str, imap_port: i32, smtp_host: &str, smtp_port: i32, username: &str, password: &str, sync_mode: &str) -> Result<String, sqlx::Error> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S").to_string();
+    let encrypted_pass = encrypt_password(password);
 
     sqlx::query(
         "INSERT INTO email_accounts (id, provider, email, display_name, imap_host, imap_port, smtp_host, smtp_port, username, password_encrypted, sync_mode, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).bind(&id).bind(provider).bind(email).bind(display_name).bind(imap_host).bind(imap_port).bind(smtp_host).bind(smtp_port).bind(username).bind(password).bind(sync_mode).bind(&now)
+    ).bind(&id).bind(provider).bind(email).bind(display_name).bind(imap_host).bind(imap_port).bind(smtp_host).bind(smtp_port).bind(username).bind(&encrypted_pass).bind(sync_mode).bind(&now)
     .execute(pool).await?;
 
     Ok(id)
 }
 
 pub async fn update_email_account_details(pool: &SqlitePool, id: &str, display_name: &str, imap_host: &str, imap_port: i32, smtp_host: &str, smtp_port: i32, password: &str) -> Result<(), sqlx::Error> {
+    let encrypted_pass = encrypt_password(password);
     sqlx::query(
         "UPDATE email_accounts SET display_name = ?, imap_host = ?, imap_port = ?, smtp_host = ?, smtp_port = ?, password_encrypted = ? WHERE id = ?"
-    ).bind(display_name).bind(imap_host).bind(imap_port).bind(smtp_host).bind(smtp_port).bind(password).bind(id).execute(pool).await?;
+    ).bind(display_name).bind(imap_host).bind(imap_port).bind(smtp_host).bind(smtp_port).bind(&encrypted_pass).bind(id).execute(pool).await?;
     Ok(())
 }
 
@@ -649,7 +708,7 @@ pub async fn import_fetched_email(
     .bind(from_address)
     .bind(from_name)
     .bind(&truncate_to_chars(body_text, 300))
-    .bind(body_html)
+    .bind(body_html.unwrap_or(body_text))
     .bind(&tags_str)
     .bind(date)
     .execute(pool)
@@ -724,10 +783,17 @@ fn simple_hash(s: &str) -> String {
 }
 
 pub async fn get_email_account_by_id(pool: &SqlitePool, id: &str) -> Result<Option<EmailAccount>, sqlx::Error> {
-    sqlx::query_as(
+    let mut account: Option<EmailAccount> = sqlx::query_as(
         "SELECT id, provider, email, display_name, imap_host, imap_port, smtp_host, smtp_port, username, password_encrypted, sync_mode, enabled, created_at
          FROM email_accounts WHERE id = ?"
-    ).bind(id).fetch_optional(pool).await
+    ).bind(id).fetch_optional(pool).await?;
+
+    if let Some(ref mut acc) = account {
+        if let Some(ref enc) = acc.password_encrypted {
+            acc.password_encrypted = Some(decrypt_password_safe(enc));
+        }
+    }
+    Ok(account)
 }
 
 // ╔═══════════════════════════════════════════════╗

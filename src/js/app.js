@@ -370,19 +370,30 @@ async function triggerBackgroundSync() {
     const accounts = await invoke('get_email_accounts');
     if (accounts && accounts.length > 0) {
       console.log('Starting background sync for accounts...');
-      let anySynced = false;
-      for (const acc of accounts) {
-        if (acc.enabled !== false) { // Default enabled
-          try {
-            await invoke('sync_email_account', { accountId: acc.id });
+      
+      // Parallelize synchronization requests using Promise.allSettled for optimal speed
+      const syncPromises = accounts
+        .filter(acc => acc.enabled !== false)
+        .map(async (acc) => {
+          await invoke('sync_email_account', { accountId: acc.id });
+          return acc.email;
+        });
+
+      if (syncPromises.length > 0) {
+        const results = await Promise.allSettled(syncPromises);
+        let anySynced = false;
+        results.forEach((res) => {
+          if (res.status === 'fulfilled') {
             anySynced = true;
-          } catch(err) {
-            console.warn(`Sync failed for ${acc.email}:`, err);
+            console.log(`Successfully synced account: ${res.value}`);
+          } else {
+            console.warn(`Sync failed for account: ${res.reason}`);
           }
+        });
+
+        if (anySynced) {
+          await loadThreads();
         }
-      }
-      if (anySynced) {
-        await loadThreads();
       }
     }
   } catch (e) {
@@ -500,7 +511,9 @@ async function loadThreads() {
 
 // ── Background Message Pre-fetcher ──
 async function prefetchAllMessages() {
-  for (const thread of state.threads) {
+  // Prevent memory bloat and IPC flood: Only pre-fetch the top 15 active threads
+  const activeThreads = state.threads.slice(0, 15);
+  for (const thread of activeThreads) {
     if (state.allMessages[thread.thread_id]) continue; // Already cached
     try {
       const msgs = await invoke('get_messages', { threadId: thread.thread_id });
@@ -1115,13 +1128,16 @@ function openEmailModal(msgId) {
   bodyContainer.innerHTML = '';
 
   const iframe = document.createElement('iframe');
+  // XSS protection: Strict isolation. Do not allow-scripts to prevent any JS from running.
+  iframe.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
   iframe.style.cssText = 'width:100%;border:none;min-height:300px;background:white;border-radius:10px;';
   bodyContainer.appendChild(iframe);
 
   requestAnimationFrame(() => {
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     // Anti-tracking: strip tracking pixels from HTML
-    const cleanHtml = stripTrackingPixels(data.html);
+    // XSS: Sanitize scripts and handlers as a double defense
+    const cleanHtml = sanitizeHtmlSimple(stripTrackingPixels(data.html));
     doc.open();
     doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
       <style>body{font-family:-apple-system,sans-serif;padding:16px;margin:0;color:#333;line-height:1.6;}
@@ -1140,6 +1156,16 @@ function stripTrackingPixels(html) {
   return html
     .replace(/<img[^>]*(?:width|height)\s*=\s*["']?1["']?[^>]*>/gi, '<!-- tracking pixel blocked -->')
     .replace(/<img[^>]*(?:pixel|track|beacon)[^>]*>/gi, '<!-- tracking pixel blocked -->');
+}
+
+// Simple HTML sanitizer to filter out scripts and inline event handlers
+function sanitizeHtmlSimple(html) {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- blocked script -->')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '/* blocked handler */')
+    .replace(/on\w+\s*=\s*["`][^"`]*["`]/gi, '/* blocked handler */')
+    .replace(/javascript\s*:/gi, 'javascript_blocked:');
 }
 
 function closeEmailModal() {
@@ -1360,20 +1386,36 @@ function setupEventListeners() {
     }
   });
 
-  searchInput.addEventListener('input', () => triggerSearch());
+  // Debounced search for high-performance fluid typing
+  let searchTimeout = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(triggerSearch, 150);
+  });
 
   function triggerSearch() {
     const freeText = searchInput.value.toLowerCase().trim();
 
-    document.querySelectorAll('.thread-item').forEach(item => {
+    // Optimize search: build O(N) map of threads to avoid quadratic O(N^2) nesting
+    const threadMap = {};
+    if (state.threads) {
+      for (let i = 0; i < state.threads.length; i++) {
+        const t = state.threads[i];
+        threadMap[t.thread_id] = t;
+      }
+    }
+
+    const items = document.querySelectorAll('.thread-item');
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
       if (searchChips.length === 0 && !freeText) {
         item.style.display = '';
-        return;
+        continue;
       }
 
       const text = item.textContent.toLowerCase();
       const threadId = item.dataset.threadId;
-      const threadData = state.threads.find(t => t.thread_id === threadId);
+      const threadData = threadMap[threadId]; // O(1) lookup speed
       const aiTags = (threadData && threadData.ai_tags) ? threadData.ai_tags.toLowerCase() : '';
       const combined = text + ' ' + aiTags;
 
@@ -1383,7 +1425,7 @@ function setupEventListeners() {
       const textMatch = !freeText || combined.includes(freeText.replace(/^#/, ''));
 
       item.style.display = (chipsMatch && textMatch) ? '' : 'none';
-    });
+    }
   }
 
   // Attachment search toggle

@@ -1,8 +1,24 @@
-// ═══════════════════════════════════════════════════════════
-// Lumina Mail - Settings & Account Management
-// ═══════════════════════════════════════════════════════════
-
 const { invoke } = window.__TAURI__.core;
+
+// ── Native dialog wrappers for Tauri v2 ──
+async function showModalAlert(msg) {
+  try {
+    const { message } = await import('@tauri-apps/plugin-dialog');
+    await message(msg, { title: 'Lumina Mail', kind: 'info' });
+  } catch(e) {
+    console.warn('Native alert failed', e);
+  }
+}
+
+async function showModalConfirm(msg) {
+  try {
+    const { ask } = await import('@tauri-apps/plugin-dialog');
+    return await ask(msg, { title: 'Lumina Mail', kind: 'warning' });
+  } catch(e) {
+    console.warn('Native confirm failed', e);
+    return false;
+  }
+}
 
 // Provider defaults
 const PROVIDERS = {
@@ -406,7 +422,7 @@ async function submitAddAccount() {
       if(acc) password = acc.password_encrypted;
     }
   } else {
-    if (!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
+    if (!email || !password) { showModalAlert('이메일과 비밀번호를 입력하세요.'); return; }
   }
 
   try {
@@ -428,7 +444,7 @@ async function submitAddAccount() {
     settingsState.addingProvider = null;
     settingsState.editingAccountId = null;
     await loadSettingsData();
-  } catch(e) { alert('저장 실패: ' + e); }
+  } catch(e) { showModalAlert('저장 실패: ' + e); }
 }
 
 async function updateSyncMode(el) {
@@ -436,15 +452,15 @@ async function updateSyncMode(el) {
   const mode = el.value;
   try {
     await invoke('update_email_sync_mode', { id, syncMode: mode });
-  } catch(e) { alert('설정 변경 실패: ' + e); }
+  } catch(e) { showModalAlert('설정 변경 실패: ' + e); }
 }
 
 async function deleteAccount(id) {
-  if (!confirm('이 메일 계정을 삭제하시겠습니까?')) return;
+  if (!await showModalConfirm('이 메일 계정을 삭제하시겠습니까?')) return;
   try {
     await invoke('delete_email_account', { id });
     await loadSettingsData();
-  } catch(e) { alert('삭제 실패: ' + e); }
+  } catch(e) { showModalAlert('삭제 실패: ' + e); }
 }
 
 // ╔═══════════════════════════════════════════════╗
@@ -532,7 +548,7 @@ async function startTelegramLinking() {
     settingsState.telegramPolling = true;
     renderSettingsBody();
     pollTelegramLink();
-  } catch(e) { alert('코드 생성 실패: ' + e); }
+  } catch(e) { showModalAlert('코드 생성 실패: ' + e); }
 }
 
 async function pollTelegramLink() {
@@ -562,18 +578,18 @@ function cancelTelegramLinking() {
 async function testTelegram() {
   try {
     await invoke('telegram_send_test');
-    alert('테스트 알림이 전송되었습니다! Telegram을 확인하세요.');
-  } catch(e) { alert('전송 실패: ' + e); }
+    showModalAlert('테스트 알림이 전송되었습니다! Telegram을 확인하세요.');
+  } catch(e) { showModalAlert('전송 실패: ' + e); }
 }
 
 async function disconnectTelegram() {
-  if (!confirm('Telegram 연결을 해제하시겠습니까?')) return;
+  if (!await showModalConfirm('Telegram 연결을 해제하시겠습니까?')) return;
   try {
     await invoke('telegram_disconnect');
     settingsState.telegramLink = null;
     renderSettingsBody();
     updateTelegramStatus(false);
-  } catch(e) { alert('해제 실패: ' + e); }
+  } catch(e) { showModalAlert('해제 실패: ' + e); }
 }
 
 function updateTelegramStatus(connected) {
@@ -739,11 +755,11 @@ async function connectCloud(provider) {
 
 async function disconnectCloud(provider) {
   const providerName = provider === 'gdrive' ? 'Google Drive' : 'OneDrive';
-  if (!confirm(`${providerName} 연결을 해제하시겠습니까?`)) return;
+  if (!await showModalConfirm(`${providerName} 연결을 해제하시겠습니까?`)) return;
   try {
     await invoke('cloud_disconnect', { provider });
     await loadSettingsData();
-  } catch(e) { alert('해제 실패: ' + e); }
+  } catch(e) { showModalAlert('해제 실패: ' + e); }
 }
 
 // Make cloud functions globally available

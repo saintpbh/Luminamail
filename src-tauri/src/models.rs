@@ -15,6 +15,7 @@ pub struct ChatRoom {
     pub unread_count: i64,
     pub last_message_preview: Option<String>,
     pub is_briefing: bool,
+    pub receiver_account: Option<String>,
     pub ai_tags: Option<String>,
     pub needs_action: Option<bool>,
 }
